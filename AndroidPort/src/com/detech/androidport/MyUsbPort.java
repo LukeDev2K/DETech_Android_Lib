@@ -31,8 +31,6 @@ public class MyUsbPort extends MyPort {
 	private static final String TAG = "UsbPortManager";
 	private static int BAUD_RATE = 115200;
 	
-//	private UsbEndpoint epBulkOut;
-//	private UsbEndpoint epBulkIn;
 	private UsbManager myUsbManager;
 	private UsbDevice usbDevice;
 	private UsbDeviceConnection usbConnect;
@@ -40,7 +38,6 @@ public class MyUsbPort extends MyPort {
 	private Context context;
 	private ConnectionThread connThread;
 	private boolean serialPortConnected;
-	private boolean granted = false;
 	
 	public MyUsbPort(){ 
 	}
@@ -81,41 +78,10 @@ public class MyUsbPort extends MyPort {
 		}
 		serialPortConnected = false;
 		LogUtil.d(TAG, "PORT CLOSE");
-	}
+	} 
 	
-//	@Override
-//	public byte[] receive() {
-//		if (usbConnect == null) {
-//			LogUtil.e(TAG, "DEVICECONNECTION == NULL");
-//			return new byte[]{};
-//		}
-//		if(!isOpen()){
-//			LogUtil.e(TAG, "DEVICE NOT OPEN");
-//			return new byte[]{};
-//		}
-//		byte[] buffer = new byte[40];
-//		int count = usbConnect.bulkTransfer(epBulkIn, buffer, buffer.length, 20);
-//		if (count > 0) {
-//			String a = MyFunc.bytesToHexString(buffer);
-//			LogUtil.i(TAG, a);
-//			return buffer;
-//		} 
-//		return new byte[]{};
-//	}
-
 	@Override
 	public void sendBytes(byte[] cmdBytes) {
-//		if (usbConnect == null) {
-//			return;
-//		}
-//		if(!isOpen()){
-//			LogUtil.e(TAG, "DEIVE NOT OPEN");
-//			return;
-//		}
-//		int count = usbConnect.bulkTransfer(epBulkOut, cmdBytes, cmdBytes.length, 0);
-//		if (count > 0) {
-////			String a = MyFunc.bytesToHexString(cmdBytes);
-//		}
 		if(usbPort == null){
 			LogUtil.e(TAG, "NULL USBPORT");
 			return;
@@ -152,10 +118,7 @@ public class MyUsbPort extends MyPort {
                     // There is a device connected to our Android device. Try to open it as a Serial Port.
                     requestUserPermission();
                     keep = false;
-                    if(!granted){
-                    	return FAIL_PERMISSION_ASK;
-                    }
-                    return SUCCESS;
+                    return PERMISSION_REQUESTING;
                 } else {
                     usbConnect = null;
                     usbDevice = null;
@@ -276,7 +239,7 @@ public class MyUsbPort extends MyPort {
         @Override
         public void onReceive(Context c, Intent i) {
             if (i.getAction().equals(ACTION_USB_PERMISSION)) {
-                granted = i.getExtras().getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED);
+                boolean granted = i.getExtras().getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED);
                 if (granted) // User accepted our USB connection. Try to open the device as a serial port
                 {
                 	CommonFunc.showMessage(c,"granted",Toast.LENGTH_SHORT);

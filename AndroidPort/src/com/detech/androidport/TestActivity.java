@@ -27,7 +27,7 @@ public class TestActivity extends Activity implements OnClickListener{
 		
 //		UsbPortManager.getInst().setContext(this);
 //		UsbPortManager.getInst().open(115200);
-		myPort = PortManager.getInst().createPort(PortManager.USB_PORT);
+		myPort = PortManager.getInst().createPort(PortManager.SERIAL_PORT);
 		if(myPort != null){
 			myPort.setContext(this);
 			myPort.open("ttyS0", 115200);

@@ -10,10 +10,9 @@ public abstract class MyPort {
 	public static final int SUCCESS 				=  100;
 	public static final int PERMISSION_REQUESTING 	=  101;
 	public static final int FAIL_PERMISSION_DENIED 	=  102;
-	public static final int FAIL_PERMISSION_ASK 	=  103;
-	public static final int FAIL_UNKOWN 			=  104;
-	public static final int FAIL_PARAMETER_ERROR 	=  105;
-	public static final int FAIL_NULL_OBJECT 		=  106;
+	public static final int FAIL_UNKOWN 			=  103;
+	public static final int FAIL_PARAMETER_ERROR 	=  104;
+	public static final int FAIL_NULL_OBJECT 		=  105;
 
 	public static final String ACTION_USB_ATTACHED 					= "android.hardware.usb.action.USB_DEVICE_ATTACHED";
 	public static final String ACTION_USB_DETACHED 					= "android.hardware.usb.action.USB_DEVICE_DETACHED";

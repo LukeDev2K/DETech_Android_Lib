@@ -44,16 +44,6 @@ public class MySerialPort extends MyPort implements MyPort.ICallback{
 		}
 	}
 	
-//	@Override
-//	public byte[] receive(){
-//		if(receiveData == null || receiveData.length<=0){
-//			return new byte[]{};
-//		}
-//		byte[] b = receiveData;
-//		receiveData = null;
-//		return b;
-//	}
-	
 	@Override
 	public void receive(byte[] receiveData) {
 //		Log.i(TAG, "RECEIVE BYTES: " + MyFunc.bytesToHexString(receiveData));
@@ -78,16 +68,16 @@ public class MySerialPort extends MyPort implements MyPort.ICallback{
 	private int openComPort(SerialHelper comPort) {
 		try {
 			comPort.open(myCom.getPort(), myCom.getBaudRate());
-			return MyPort.SUCCESS;
+			return SUCCESS;
 		} catch (SecurityException e) {
 			LogUtil.e(TAG, comPort.getPort() + "SecurityException!" + e.getMessage());
-			return MyPort.FAIL_PERMISSION_DENIED;
+			return FAIL_PERMISSION_DENIED;
 		} catch (IOException e) {
 			LogUtil.e(TAG, comPort.getPort() + "IOException!" +e.getMessage());
-			return MyPort.FAIL_UNKOWN;
+			return FAIL_UNKOWN;
 		} catch (InvalidParameterException e) {
 			LogUtil.e(TAG, comPort.getPort() + "InvalidParameterException!" + e.getMessage());
-			return MyPort.FAIL_PARAMETER_ERROR;
+			return FAIL_PARAMETER_ERROR;
 		}
 	}
 
@@ -104,7 +94,7 @@ public class MySerialPort extends MyPort implements MyPort.ICallback{
 		@Override
 		protected void onDataReceived(final byte[] buffer, final int size) {
 			bufferQueue.add(buffer);
-//			Log.i(TAG, "RECEIVE BYTES: " + MyFunc.bytesToHexString(receiveData));
+//			Log.i(TAG, "RECEIVE BYTES: " + MyFunc.bytesToHexString(buffer));
 			if(callback != null){
 				callback.receive(buffer);
 			}

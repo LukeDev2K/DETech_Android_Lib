@@ -13,7 +13,6 @@ import com.detect.androidutils.custom.MyFunc;
 
 public abstract class SerialHelper{
 	
-	private static final String TAG = "SerialHelper";
 	private SerialPort mSerialPort;
 	private OutputStream mOutputStream;
 	private InputStream mInputStream;
@@ -104,16 +103,19 @@ public abstract class SerialHelper{
 					if (mInputStream == null) return;
 					byte[] buffer=new byte[20];
 					int size = mInputStream.read(buffer);
+//					LogUtil.i("", "size: " + size + "  buffer: " + MyFunc.bytesToHexString(buffer));
+					
+					onDataReceived(buffer, size);
 					if (size > 0){
-						byteList.add(buffer);
-						if(size>3){
-							byte[] newBuffer = byteList.get(0);
-							if(byteList.size()>1){
-								newBuffer =MyFunc.byteMerger(byteList.get(0), byteList.get(1));
-							}
-							onDataReceived(newBuffer, size);
-							byteList.clear();
-						}
+//						byteList.add(buffer);
+//						if(size>3){
+//							byte[] newBuffer = byteList.get(0);
+//							if(byteList.size()>1){
+//								newBuffer =MyFunc.byteMerger(byteList.get(0), byteList.get(1));
+//							}
+//							onDataReceived(newBuffer, size);
+//							byteList.clear();
+//						}
 					}
 					try
 					{
