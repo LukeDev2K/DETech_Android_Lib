@@ -1,5 +1,7 @@
 package com.detect.androidutils.custom;
 
+import android.annotation.SuppressLint;
+
 public class MyFunc {
 	//------------------------------------------------------- // �ж�������ż����λ���㣬���һλ��?1��Ϊ������Ϊ0��ż��
     static public int isOdd(int num)
@@ -17,7 +19,8 @@ public class MyFunc {
     	return (byte)Integer.parseInt(inHex,16);
     }
     //-------------------------------------------------------
-    static public String Byte2Hex(Byte inByte) 
+    @SuppressLint("DefaultLocale")
+	static public String Byte2Hex(Byte inByte) 
     {
     	return String.format("%02x", inByte).toUpperCase();
     }
@@ -88,7 +91,8 @@ public class MyFunc {
         return byte_3;  
     }
     
-    public static final String bytesToHexString(byte[] bArray) {
+    @SuppressLint("DefaultLocale")
+	public static final String bytesToHexString(byte[] bArray) {
 		StringBuffer sb = new StringBuffer(bArray.length);
 		String sTemp;
 		for (int i = 0; i < bArray.length; i++) {
@@ -105,5 +109,11 @@ public class MyFunc {
     	String[] arr = timeFormat.split("-");
     	float timer = Float.parseFloat(arr[arr.length-1]);
     	return timer;
+    }
+    
+    public static byte[] subBytes(byte[] src, int begin, int count) {
+        byte[] bs = new byte[count];
+        for (int i=begin; i<begin+count; i++) bs[i-begin] = src[i];
+        return bs;
     }
 }

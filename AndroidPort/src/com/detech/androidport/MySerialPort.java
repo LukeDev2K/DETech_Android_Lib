@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 
 import com.detect.androidutils.custom.LogUtil;
+import com.detect.androidutils.custom.MyFunc;
 
 import android.content.Context;
 import android_serialport_api.SerialHelper;
@@ -92,7 +93,8 @@ public class MySerialPort extends MyPort implements MyPort.ICallback{
 		}
 
 		@Override
-		protected void onDataReceived(final byte[] buffer, final int size) {
+		protected void onDataReceived(byte[] buffer, int size) {
+			buffer = MyFunc.subBytes(buffer, 0, size);
 			bufferQueue.add(buffer);
 //			Log.i(TAG, "RECEIVE BYTES: " + MyFunc.bytesToHexString(buffer));
 			if(callback != null){
