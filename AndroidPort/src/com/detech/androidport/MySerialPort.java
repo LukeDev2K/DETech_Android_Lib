@@ -68,7 +68,7 @@ public class MySerialPort extends MyPort implements MyPort.ICallback{
 
 	private int openComPort(SerialHelper comPort) {
 		try {
-			comPort.open(myCom.getPort(), myCom.getBaudRate());
+			comPort.open(myCom.getPort(), myCom.getBaudRate(), readDelayTime);
 			return SUCCESS;
 		} catch (SecurityException e) {
 			LogUtil.e(TAG, comPort.getPort() + "SecurityException!" + e.getMessage());

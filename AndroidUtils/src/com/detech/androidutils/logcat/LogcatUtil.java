@@ -89,15 +89,23 @@ public class LogcatUtil {
 	}
  
 	public void start() {
-		if (mLogDumper == null)
-			mLogDumper = new LogDumper(String.valueOf(mPId), PATH_LOGCAT);
-		mLogDumper.start();
+		try {
+			if (mLogDumper == null)
+				mLogDumper = new LogDumper(String.valueOf(mPId), PATH_LOGCAT);
+			mLogDumper.start();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void stop() {
-		if (mLogDumper != null) {
-			mLogDumper.stopLogs();
-			mLogDumper = null;
+		try {
+			if (mLogDumper != null) {
+				mLogDumper.stopLogs();
+				mLogDumper = null;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
