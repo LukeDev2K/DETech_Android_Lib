@@ -1,7 +1,7 @@
 package com.detech.androidport;
 
 import java.util.LinkedList;
-import java.util.Queue;
+import java.util.List;
 
 import com.detect.androidutils.custom.LogUtil;
 import com.detect.androidutils.custom.MyFunc;
@@ -32,7 +32,10 @@ public abstract class MyPort {
 	public static final int CTS_CHANGE = 1;
 	public static final int DSR_CHANGE = 2;
 	
-	protected Queue<byte[]> bufferQueue = new LinkedList<byte[]>();
+	public static final int MAX_QUEUE_NUM = 12;//最大缓存的数据
+	
+//	protected Queue<byte[]> bufferQueue = new LinkedList<byte[]>();
+	protected List<byte[]> bufferList = java.util.Collections.synchronizedList(new LinkedList<byte[]>());
 	protected int readDelayTime = 15; 
 	
 	public abstract void setContext(Context context);
@@ -53,13 +56,26 @@ public abstract class MyPort {
  
 	public byte[] receive() {
 		byte[] buffer =  new byte[] {};
-		if (bufferQueue.size() <= 0)
+//		if (bufferQueue.size() <= 0)
+//			return buffer;
+//		while (bufferQueue.size() > 0) {
+//			byte[] b = bufferQueue.poll();
+//			LogUtil.w("", MyFunc.ByteArrToHex(b));
+//			buffer = MyFunc.byteMerger(buffer, b);
+//		}
+		if(bufferList.size() <= 0){
 			return buffer;
-//		return bufferQueue.poll();
-		while (bufferQueue.size() > 0) {
-			byte[] b = bufferQueue.poll();
-			LogUtil.w("", MyFunc.ByteArrToHex(b));
-			buffer = MyFunc.byteMerger(buffer, b);
+		}
+		while(bufferList.size() > 0){
+			try{
+				byte[] b = bufferList.remove(0);
+				LogUtil.w("", MyFunc.ByteArrToHex(b));
+				buffer = MyFunc.byteMerger(buffer, b);
+			}catch(IndexOutOfBoundsException ie){
+				ie.printStackTrace();
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		return buffer;
 	}

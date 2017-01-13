@@ -95,8 +95,10 @@ public class MySerialPort extends MyPort implements MyPort.ICallback{
 		@Override
 		protected void onDataReceived(byte[] buffer, int size) {
 			buffer = MyFunc.subBytes(buffer, 0, size);
-			bufferQueue.add(buffer);
-//			Log.i(TAG, "RECEIVE BYTES: " + MyFunc.bytesToHexString(buffer));
+			if(bufferList.size()> MAX_QUEUE_NUM){//最多缓存
+				bufferList.clear();
+			}
+			bufferList.add(buffer);
 			if(callback != null){
 				callback.receive(buffer);
 			}
