@@ -1,5 +1,7 @@
 package com.detect.androidutils.custom;
 
+import com.detech.androidutils.PackageUtils;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -84,7 +86,7 @@ public class SystemUtil {
 	 * 关机
 	 * @param needSysPermission 是否需要系统权限
 	 */
-	public void shutDown(boolean needSysPermission){
+	public void shutdown(boolean needSysPermission){
 		if(!needSysPermission){
 			try {
 				Process proc = Runtime.getRuntime().exec(new String[] { "su", "-c", "reboot -p" });
@@ -181,4 +183,18 @@ public class SystemUtil {
 
         return true;
     }
+	
+	/**
+	 * 自动安装
+	 * @param context
+	 * @param filepath
+	 * @return
+	 * 		0：安装成功
+	 * 		1：文件不存在
+	 * 		2：发生其他错误
+	 */
+	public int autoInstall(Context context, String filepath) {
+		int tag = PackageUtils.install(context, filepath);
+		return tag;
+	}
 }

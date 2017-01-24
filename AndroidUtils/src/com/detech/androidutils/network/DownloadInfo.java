@@ -7,6 +7,7 @@ public class DownloadInfo {
 	private ContentObserver observer;
 	private long id;
 	private String link;
+	private String filepath;
 	
 	public ContentObserver getObserver() {
 		return observer;
@@ -30,5 +31,13 @@ public class DownloadInfo {
 
 	public void setLink(String link) {
 		this.link = link;
+	}
+
+	public String getFilepath() {
+		return filepath;
+	}
+
+	public void setFilepath(String filepath) {
+		this.filepath = filepath;
 	}
 }

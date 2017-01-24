@@ -19,7 +19,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 
-public class DownloadController {
+public class DownloadUtil {
 
 	private static final Uri CONTENT_URI = Uri.parse("content://downloads/my_downloads");
 	private static final String TAG = "DownloadController";
@@ -29,7 +29,7 @@ public class DownloadController {
 	private static final int FAIL_WRONG_ADDRESS 			= 1003;
 	private static final int FAIL_ALREADY_DOWNLOADED	 	= 1004;
 
-	private static DownloadController _instance;
+	private static DownloadUtil _instance;
 
 	private Context context;
 	private String floder;
@@ -39,9 +39,9 @@ public class DownloadController {
 	private boolean underAppFloder;//是否在app目录下
 	private boolean allowedOverRoaming;//是否允许漫游
 
-	public static DownloadController getInst() {
+	public static DownloadUtil getInst() {
 		if (_instance == null) {
-			_instance = new DownloadController();
+			_instance = new DownloadUtil();
 		}
 		return _instance;
 	}
@@ -66,13 +66,60 @@ public class DownloadController {
 	 * @param callback
 	 * @return
 	 */
-	public long download(String link, IDownloadStatusCallback callback) {
+	public void start(String link, IDownloadStatusCallback callback) {
+		if(!checkDownloadAction(link, callback)) return;
+		
+		if (downloadManager == null) {
+			downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+		} 
+		Request request = new DownloadManager.Request(Uri.parse(link));
+		String fileName = getFileName(link);
+		String filepath = "";//文件路径
+		if(underAppFloder){
+			filepath = context.getExternalFilesDir(floder) + "/" + fileName;
+			request.setDestinationInExternalFilesDir(context, floder, fileName);
+		}else{
+			filepath = Environment.getExternalStoragePublicDirectory(floder) + "/" + fileName;
+			request.setDestinationInExternalPublicDir(floder, fileName);
+		}
+		File file = new File(filepath);
+		if(file.exists()){
+			if (FileOperation.deleteFile(new File(filepath))) {
+				doDownloadAction(request, filepath, link, callback);
+				return;
+			}
+			LogUtil.e(TAG, "不成功删除: " + filepath);
+		}else{
+			doDownloadAction(request, filepath, link, callback);
+		}
+	}
+	
+	/**
+	 * 开始下载的动作
+	 * @param request
+	 * @param filepath
+	 * @param link
+	 * @param callback
+	 */
+	private void doDownloadAction(Request request,String filepath, String link, IDownloadStatusCallback callback){
+		LogUtil.i(TAG, "成功删除: " + filepath);
+		request.setAllowedOverRoaming(allowedOverRoaming);
+		long downloadId = downloadManager.enqueue(request);
+		DownloadInfo info = new DownloadInfo();
+		info.setId(downloadId);
+		info.setLink(link);
+		info.setFilepath(filepath);
+		DownloadChangeObserver downloadChangeObserver = new DownloadChangeObserver(null, info, callback);
+		context.getContentResolver().registerContentObserver(CONTENT_URI, true, downloadChangeObserver);
+	}
+	
+	private boolean checkDownloadAction(String link, IDownloadStatusCallback callback){
 		if (!Network.isAvailable(context)) {
 			LogUtil.e(TAG, "网络不可用");
 			if (callback != null) {
 				callback.onFail(FAIL_NETWORK_INAVAILABLE);
 			}
-			return FAIL_NETWORK_INAVAILABLE;
+			return false;
 		}
 		if (!isComponentAvailable(context)) {
 			LogUtil.e(TAG, "下载组件不可用");
@@ -80,17 +127,14 @@ public class DownloadController {
 				callback.onFail(FAIL_COMPONENT_INAVAILABLE);
 			}
 			openDownloadComponent(context);
-			return FAIL_COMPONENT_INAVAILABLE;
+			return false;
 		}
 		if (link == "" || link == null) {
 			LogUtil.e(TAG, "地址出错");
 			if (callback != null) {
 				callback.onFail(FAIL_WRONG_ADDRESS);
 			}
-			return FAIL_WRONG_ADDRESS;
-		}
-		if (downloadManager == null) {
-			downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+			return false;
 		}
 		for (DownloadInfo downloadInfo : downloadList) {
 			if(downloadInfo.getLink().equals(link)){
@@ -98,27 +142,10 @@ public class DownloadController {
 				if(callback != null){
 					callback.onFail(FAIL_ALREADY_DOWNLOADED);
 				}
-				return FAIL_ALREADY_DOWNLOADED;
+				return false;
 			}
 		}
-		if (FileOperation.createFloder(floder))
-			LogUtil.i(TAG, "成功创建文件夹");
-		Request request = new DownloadManager.Request(Uri.parse(link));
-		String fileName = getFileName(link);
-		if(underAppFloder){
-			request.setDestinationInExternalFilesDir(context, floder, fileName);
-		}else{
-			request.setDestinationInExternalPublicDir(floder, fileName);
-		}
-		request.setAllowedOverRoaming(allowedOverRoaming);
-		long downloadId = downloadManager.enqueue(request);
-		DownloadInfo info = new DownloadInfo();
-		info.setId(downloadId);
-		info.setLink(link);
-		DownloadChangeObserver downloadChangeObserver = new DownloadChangeObserver(null, info, callback);
-		context.getContentResolver().registerContentObserver(CONTENT_URI, true, downloadChangeObserver);
-		
-		return downloadId;
+		return true;
 	}
 
 	private String getFileName(String link) {
@@ -146,11 +173,7 @@ public class DownloadController {
 				int fileSizeIdx = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES);//
 				int bytesDLIdx = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR);// 目前的下载大小
 
-				String title = cursor.getString(titleIdx);
-				String filepath = context.getExternalFilesDir(floder) + "/" + title;
-				if(!underAppFloder){
-					filepath = Environment.getExternalStoragePublicDirectory(floder) + "/" + title;
-				}
+				String title = cursor.getString(titleIdx); 
 				int fileSize = cursor.getInt(fileSizeIdx);
 				int bytesDL = cursor.getInt(bytesDLIdx);
 				int reason = cursor.getInt(reasonIdx);// 这个值分析下载和暂停的原因，
@@ -160,21 +183,20 @@ public class DownloadController {
 				builder.append("Downloaded ").append(bytesDL).append("/").append(fileSize);
 				if (reason == 0) {
 					if (callback != null) {
-						callback.onStatus(title, bytesDL, fileSize);
+						callback.onStatus(info.getId(), title, bytesDL, fileSize);
 						if (bytesDL == fileSize) {
 							context.getContentResolver().unregisterContentObserver(info.getObserver());
 							if(downloadList.contains(info)){
 								LogUtil.i(TAG, "下载完成移除Info");
 								downloadList.remove(info);
 							}
-							callback.onSuccess(info.getId(), filepath);
+							callback.onSuccess(info.getFilepath());
 						}
 					}
 				} else {
 					if (callback != null) {
 						callback.onFail(reason);
 					}
-					removeDownloadInfo(info);
 				}
 			}
 		} catch (Exception e) {
@@ -183,6 +205,19 @@ public class DownloadController {
 			if (cursor != null) {
 				cursor.close();
 				cursor = null;
+			}
+		}
+	}
+	
+	/**
+	 * 移除下载信息
+	 * @param downloadId
+	 */
+	public void removeDownloadInfo(long downloadId){
+		for (DownloadInfo downloadInfo : downloadList) {
+			if(downloadId == downloadInfo.getId()){
+				removeDownloadInfo(downloadInfo);
+				break;
 			}
 		}
 	}
@@ -310,6 +345,8 @@ public class DownloadController {
 		/**
 		 * 正在下载信息
 		 * 
+		 * @param downloadId
+		 * 			     下载的id
 		 * @param title
 		 *            下载的标题
 		 * @param currentBytes
@@ -317,17 +354,14 @@ public class DownloadController {
 		 * @param totalBytes
 		 *            总字节
 		 */
-		void onStatus(String title, int currentBytes, int totalBytes);
+		void onStatus(long downloadId, String title, int currentBytes, int totalBytes);
 
 		/**
 		 * 下载完成
-		 * 
-		 * @param downloadId
-		 *            下载的id
 		 * @param filepath
 		 *            文件路径
 		 */
-		void onSuccess(long downloadId, String filepath);
+		void onSuccess(String filepath);
 
 		/**
 		 * 下载失败

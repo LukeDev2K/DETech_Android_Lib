@@ -3,7 +3,6 @@ package com.detech.androidport;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.detect.androidutils.custom.LogUtil;
 import com.detect.androidutils.custom.MyFunc;
 
 import android.content.Context;
@@ -69,7 +68,7 @@ public abstract class MyPort {
 		while(bufferList.size() > 0){
 			try{
 				byte[] b = bufferList.remove(0);
-				LogUtil.w("", MyFunc.ByteArrToHex(b));
+//				LogUtil.w("", MyFunc.ByteArrToHex(b));
 				buffer = MyFunc.byteMerger(buffer, b);
 			}catch(IndexOutOfBoundsException ie){
 				ie.printStackTrace();
