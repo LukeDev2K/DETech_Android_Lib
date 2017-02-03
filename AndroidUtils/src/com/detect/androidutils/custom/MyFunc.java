@@ -1,9 +1,15 @@
 package com.detect.androidutils.custom;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
 import android.annotation.SuppressLint;
 
 public class MyFunc {
-	//------------------------------------------------------- // �ж�������ż����λ���㣬���һλ��?1��Ϊ������Ϊ0��ż��
+	//------------------------------------------------------- //
     static public int isOdd(int num)
 	{
 		return num & 0x1;
@@ -36,6 +42,7 @@ public class MyFunc {
 		}
 		return strBuilder.toString(); 
 	}
+	
   //-------------------------------------------------------
     static public String ByteArrToHex(byte[] inBytArr,int offset,int byteCount) 
 	{
@@ -104,6 +111,15 @@ public class MyFunc {
 		return sb.toString();
 	}
     
+    public static final String bytesToHexString(List<Byte> byteList){
+    	if(byteList == null || byteList.size() == 0) return "";
+    	byte[] bArr = new byte[byteList.size()];
+    	for (int i = 0; i < bArr.length; i++) {
+			bArr[i] = byteList.get(i);
+		}
+    	return bytesToHexString(bArr);
+    }
+    
     public static float getMills(String timeFormat){
     	String[] arr = timeFormat.split("-");
     	float timer = Float.parseFloat(arr[arr.length-1]);
@@ -114,5 +130,73 @@ public class MyFunc {
         byte[] bs = new byte[count];
         for (int i=begin; i<begin+count; i++) bs[i-begin] = src[i];
         return bs;
+    }
+    
+    public static String getFileName(String path){
+    	if(isNullOrEmpty(path)) return null;
+    	File file = new File(path);
+    	return file.getName();
+    }
+    
+    public static boolean isNullOrEmpty(String str){
+    	if(str == null || str.equals("")){
+    		return true;
+    	}
+    	return false;
+    }
+    
+    public static byte[] list2ByteArr(List<Byte> byteList){
+    	if(byteList == null) return null;
+    	byte[] bArr = new byte[byteList.size()];
+    	for (int i = 0; i < bArr.length; i++) {
+			bArr[i] = byteList.get(i);
+		}
+    	return bArr;
+    }
+    
+    /**
+     * 有符号byte转无符号
+     * @param b
+     * @return
+     */
+    public static int toInt(int b) {  
+        return b >= 0 ? (int)b : (int)(b + 256);  
+    } 
+    
+    public static int parseInt(String str){
+    	int value = 0;
+    	if(isNullOrEmpty(str)) return value;
+    	try {
+    		value = Integer.parseInt(str);
+    	} catch(NumberFormatException nfe){
+    		nfe.printStackTrace();
+    	} catch (Exception e) {
+    		e.printStackTrace();
+		}
+    	return value;
+    }
+    
+    public static float parseFloat(String str){
+    	float value = 0;
+    	if(isNullOrEmpty(str)) return value;
+    	try {
+    		value = Float.parseFloat(str);
+    	} catch(NumberFormatException nfe){
+    		nfe.printStackTrace();
+    	} catch (Exception e) {
+    		e.printStackTrace();
+		}
+    	return value;
+    }
+    
+    /**
+     * 获得当前日期
+     * @param template 样式
+     * @return
+     */
+    public static String getCurrentDate(String template){
+		SimpleDateFormat formatter = new SimpleDateFormat(template, Locale.CHINA);
+		Date curDate = new Date(System.currentTimeMillis());// 获取当前时间
+		return formatter.format(curDate);
     }
 }

@@ -58,12 +58,13 @@ public abstract class SerialHelper{
 	}
 	//----------------------------------------------------
 	public void send(byte[] bOutArray){
-		try
-		{
+		try{
+			if(mOutputStream == null) return;
 			mOutputStream.write(bOutArray);
 //			Log.i("SerialHelper",MyFunc.ByteArrToHex(bOutArray));
-		} catch (IOException e)
-		{
+		} catch (IOException e){
+			e.printStackTrace();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
