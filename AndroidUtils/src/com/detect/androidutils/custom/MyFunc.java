@@ -1,9 +1,11 @@
 package com.detect.androidutils.custom;
 
+import java.io.File;
+
 import android.annotation.SuppressLint;
 
 public class MyFunc {
-	//------------------------------------------------------- // �ж�������ż����λ���㣬���һλ��?1��Ϊ������Ϊ0��ż��
+	//------------------------------------------------------- //
     static public int isOdd(int num)
 	{
 		return num & 0x1;
@@ -114,5 +116,18 @@ public class MyFunc {
         byte[] bs = new byte[count];
         for (int i=begin; i<begin+count; i++) bs[i-begin] = src[i];
         return bs;
+    }
+    
+    public static String getFileName(String path){
+    	if(isNullOrEmpty(path)) return null;
+    	File file = new File(path);
+    	return file.getName();
+    }
+    
+    public static boolean isNullOrEmpty(String str){
+    	if(str == null || str.equals("")){
+    		return true;
+    	}
+    	return false;
     }
 }
