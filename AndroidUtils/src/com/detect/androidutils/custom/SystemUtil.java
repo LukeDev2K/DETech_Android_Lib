@@ -1,5 +1,9 @@
 package com.detect.androidutils.custom;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import com.detech.androidutils.PackageUtils;
 
 import android.annotation.SuppressLint;
@@ -197,4 +201,15 @@ public class SystemUtil {
 		int tag = PackageUtils.install(context, filepath);
 		return tag;
 	}
+    
+    /**
+     * 获得当前日期
+     * @param template 样式
+     * @return
+     */
+    public String getCurrentDate(String template){
+		SimpleDateFormat formatter = new SimpleDateFormat(template, Locale.getDefault());
+		Date curDate = new Date(System.currentTimeMillis());// 获取当前时间
+		return formatter.format(curDate);
+    }
 }

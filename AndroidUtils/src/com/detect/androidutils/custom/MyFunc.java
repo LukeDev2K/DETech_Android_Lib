@@ -1,10 +1,7 @@
 package com.detect.androidutils.custom;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import android.annotation.SuppressLint;
 
@@ -187,16 +184,5 @@ public class MyFunc {
     		e.printStackTrace();
 		}
     	return value;
-    }
-    
-    /**
-     * 获得当前日期
-     * @param template 样式
-     * @return
-     */
-    public static String getCurrentDate(String template){
-		SimpleDateFormat formatter = new SimpleDateFormat(template, Locale.CHINA);
-		Date curDate = new Date(System.currentTimeMillis());// 获取当前时间
-		return formatter.format(curDate);
     }
 }
