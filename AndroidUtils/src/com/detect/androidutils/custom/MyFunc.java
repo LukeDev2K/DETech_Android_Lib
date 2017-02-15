@@ -1,6 +1,7 @@
 package com.detect.androidutils.custom;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.List;
 
 import android.annotation.SuppressLint;
@@ -185,4 +186,35 @@ public class MyFunc {
 		}
     	return value;
     }
+    
+	public static String[] getFiledNames(Class<?> cls) {
+		Field[] fields = cls.getFields();
+		String[] fieldNames = new String[fields.length];
+		for (int i = 0; i < fields.length; i++) {
+			fieldNames[i] = fields[i].getName();
+		}
+		return fieldNames;
+	}
+	
+	public static Object getStaticProperty(Class<?> cls, String fieldName){
+	    Field field;
+	    Object property = null;
+		try {
+			field = cls.getField(fieldName);
+			property = field.get(cls);
+		} catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
+			e.printStackTrace();
+		}
+	    return property;
+	}
+	
+	public static void setStaticProperty(Class<?> cls, String fieldName, Object value){
+		try {
+			Field field = cls.getDeclaredField(fieldName);
+			field.setAccessible(true);
+			field.set(fieldName, value);
+		} catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
+			e.printStackTrace();
+		}
+	}
 }
