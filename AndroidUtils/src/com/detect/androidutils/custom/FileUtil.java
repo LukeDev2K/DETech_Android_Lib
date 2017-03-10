@@ -6,8 +6,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+
+import android.content.Context;
 
 public class FileUtil {
 	
@@ -95,7 +98,6 @@ public class FileUtil {
             pw.flush();
             bool = true;
         } catch (Exception e) {
-            // TODO: handle exception
             e.printStackTrace();
         }finally {
             //不要忘记关闭
@@ -137,4 +139,55 @@ public class FileUtil {
         }
         return result.toString();
     }
+    
+    /**
+     * 读取raw文件， 返回路径
+     * @param context
+     * @param name
+     * @param id
+     * @return
+     */
+	public static String saveRaw(Context context, String name, int id) {
+		File target = new File(context.getFilesDir(), name);
+		if (target.exists())
+			return target.getAbsolutePath();
+		InputStream is = null;
+		FileOutputStream fos = null;
+		try {
+			is = context.getResources().openRawResource(id);
+			byte[] buf = new byte[2048];
+			int len = 0;
+
+			long sum = 0;
+			File file = new File(target.getParent());
+			if (!file.exists())
+				file.mkdirs();
+
+			fos = new FileOutputStream(target);
+			while ((len = is.read(buf)) != -1) {
+				sum += len;
+				fos.write(buf, 0, len);
+
+			}
+			fos.flush();
+			return target.getAbsolutePath();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "";
+		} finally {
+			try {
+				if (is != null) {
+					is.close();
+				}
+			} catch (IOException e) {
+			}
+			try {
+				if (fos != null) {
+					fos.close();
+				}
+			} catch (IOException e) {
+			}
+		}
+	}
 }

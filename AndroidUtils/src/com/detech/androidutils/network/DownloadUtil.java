@@ -24,10 +24,10 @@ public class DownloadUtil {
 	private static final Uri CONTENT_URI = Uri.parse("content://downloads/my_downloads");
 	private static final String TAG = "DownloadController";
 
-	private static final int FAIL_NETWORK_INAVAILABLE		= 1001;
-	private static final int FAIL_COMPONENT_INAVAILABLE 	= 1002;
-	private static final int FAIL_WRONG_ADDRESS 			= 1003;
-	private static final int FAIL_ALREADY_DOWNLOADED	 	= 1004;
+	public static final int FAIL_NETWORK_INAVAILABLE		= 1001;
+	public static final int FAIL_COMPONENT_INAVAILABLE 	= 1002;
+	public static final int FAIL_WRONG_ADDRESS 			= 1003;
+	public static final int FAIL_ALREADY_DOWNLOADED	 	= 1004;
 
 	private static DownloadUtil _instance;
 
@@ -85,6 +85,7 @@ public class DownloadUtil {
 		File file = new File(filepath);
 		if(file.exists()){
 			if (FileOperation.deleteFile(new File(filepath))) {
+				LogUtil.i(TAG, "成功删除: " + filepath);
 				doDownloadAction(request, filepath, link, callback);
 				return;
 			}
@@ -102,7 +103,6 @@ public class DownloadUtil {
 	 * @param callback
 	 */
 	private void doDownloadAction(Request request,String filepath, String link, IDownloadStatusCallback callback){
-		LogUtil.i(TAG, "成功删除: " + filepath);
 		request.setAllowedOverRoaming(allowedOverRoaming);
 		long downloadId = downloadManager.enqueue(request);
 		DownloadInfo info = new DownloadInfo();
@@ -196,6 +196,7 @@ public class DownloadUtil {
 				} else {
 					if (callback != null) {
 						callback.onFail(reason);
+						removeDownloadInfo(info);
 					}
 				}
 			}
@@ -252,8 +253,12 @@ public class DownloadUtil {
 	}
 	
 	private void removeAllDownloadInfo(){
-		for (DownloadInfo downloadInfo : downloadList) {
-			removeDownloadInfo(downloadInfo);
+		try {
+			for (DownloadInfo downloadInfo : downloadList) {
+				removeDownloadInfo(downloadInfo);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
