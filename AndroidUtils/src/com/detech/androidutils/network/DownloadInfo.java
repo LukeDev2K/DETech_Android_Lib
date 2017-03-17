@@ -7,7 +7,8 @@ public class DownloadInfo {
 	private ContentObserver observer;
 	private long id;
 	private String link;
-	private String filepath;
+	private String temporaryFilePath;//临时的文件路径
+	private String originFilePath;//真正的文件路径
 	
 	public ContentObserver getObserver() {
 		return observer;
@@ -31,13 +32,21 @@ public class DownloadInfo {
 
 	public void setLink(String link) {
 		this.link = link;
+	} 
+
+	public String getOriginFilePath() {
+		return originFilePath;
 	}
 
-	public String getFilepath() {
-		return filepath;
+	public void setOriginFilePath(String originFilePath) {
+		this.originFilePath = originFilePath;
 	}
 
-	public void setFilepath(String filepath) {
-		this.filepath = filepath;
+	public String getTemporaryFilePath() {
+		return temporaryFilePath;
+	}
+
+	public void setTemporaryFilePath(String temporaryFilePath) {
+		this.temporaryFilePath = temporaryFilePath;
 	}
 }
