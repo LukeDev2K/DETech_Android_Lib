@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.detech.androidutils.FileOperation;
 import com.detect.androidutils.custom.LogUtil;
+import com.detect.androidutils.custom.MyFunc;
 
 import android.app.DownloadManager;
 import android.app.DownloadManager.Request;
@@ -23,6 +24,7 @@ public class DownloadUtil {
 
 	private static final Uri CONTENT_URI = Uri.parse("content://downloads/my_downloads");
 	private static final String TAG = "DownloadController";
+	private static final String DOWNLOAD_SUFFIX = "_downloading";//下载文件的后缀
 
 	public static final int FAIL_NETWORK_INAVAILABLE		= 1001;
 	public static final int FAIL_COMPONENT_INAVAILABLE 	= 1002;
@@ -73,25 +75,36 @@ public class DownloadUtil {
 			downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
 		} 
 		Request request = new DownloadManager.Request(Uri.parse(link));
-		String fileName = getFileName(link);
-		String filepath = "";//文件路径
+		String originFileName = getFileName(link);
+		String temporaryFileName = setFileName2Temporary(originFileName, DOWNLOAD_SUFFIX); //临时文件名
+		if(MyFunc.isNullOrEmpty(temporaryFileName)) return;
+		String temporaryFilePath = "";//临时下载文件路径
+		String originFilePath = "";//原始文件路径
 		if(underAppFloder){
-			filepath = context.getExternalFilesDir(floder) + "/" + fileName;
-			request.setDestinationInExternalFilesDir(context, floder, fileName);
+			temporaryFilePath = context.getExternalFilesDir(floder) + "/" + temporaryFileName;
+			originFilePath = context.getExternalFilesDir(floder) + "/" + originFileName;
+			request.setDestinationInExternalFilesDir(context, floder, temporaryFileName);
 		}else{
-			filepath = Environment.getExternalStoragePublicDirectory(floder) + "/" + fileName;
-			request.setDestinationInExternalPublicDir(floder, fileName);
+			temporaryFilePath = Environment.getExternalStoragePublicDirectory(floder) + "/" + temporaryFileName;
+			originFilePath = Environment.getExternalStoragePublicDirectory(floder) + "/" + originFileName;
+			request.setDestinationInExternalPublicDir(floder, temporaryFileName);
 		}
-		File file = new File(filepath);
+
+		DownloadInfo info = new DownloadInfo();
+		info.setLink(link);
+		info.setTemporaryFilePath(temporaryFilePath);
+		info.setOriginFilePath(originFilePath);
+		//查找有没有临时文件， 有的话就删掉下载， 没有就直接下载
+		File file = new File(temporaryFilePath);
 		if(file.exists()){
-			if (FileOperation.deleteFile(new File(filepath))) {
-				LogUtil.i(TAG, "成功删除: " + filepath);
-				doDownloadAction(request, filepath, link, callback);
+			if (FileOperation.deleteFile(new File(temporaryFilePath))) {
+				LogUtil.i(TAG, "成功删除: " + temporaryFilePath);
+				doDownloadAction(request, info, link, callback);
 				return;
 			}
-			LogUtil.e(TAG, "不成功删除: " + filepath);
+			LogUtil.e(TAG, "不成功删除: " + temporaryFilePath);
 		}else{
-			doDownloadAction(request, filepath, link, callback);
+			doDownloadAction(request, info, link, callback);
 		}
 	}
 	
@@ -102,13 +115,10 @@ public class DownloadUtil {
 	 * @param link
 	 * @param callback
 	 */
-	private void doDownloadAction(Request request,String filepath, String link, IDownloadStatusCallback callback){
+	private void doDownloadAction(Request request,DownloadInfo info, String link, IDownloadStatusCallback callback){
 		request.setAllowedOverRoaming(allowedOverRoaming);
 		long downloadId = downloadManager.enqueue(request);
-		DownloadInfo info = new DownloadInfo();
 		info.setId(downloadId);
-		info.setLink(link);
-		info.setFilepath(filepath);
 		DownloadChangeObserver downloadChangeObserver = new DownloadChangeObserver(null, info, callback);
 		context.getContentResolver().registerContentObserver(CONTENT_URI, true, downloadChangeObserver);
 	}
@@ -153,6 +163,19 @@ public class DownloadUtil {
 		String fileName = fName.substring(fName.lastIndexOf("/") + 1);
 		return fileName;
 	}
+	
+	/**
+	 * 把名字设置成临时名字
+	 * @param fileName
+	 * @param suffix
+	 * @return
+	 */
+	private String setFileName2Temporary(String fileName, String suffix){
+		if(MyFunc.isNullOrEmpty(fileName)) return null;
+		String fileFormat = fileName.substring(fileName.lastIndexOf("."));//文件格式
+		String name = fileName.substring(0, fileName.lastIndexOf("."));//文件名
+		return name + suffix + fileFormat;
+	}
 
 	/**
 	 * 检查下载状态
@@ -183,14 +206,18 @@ public class DownloadUtil {
 				builder.append("Downloaded ").append(bytesDL).append("/").append(fileSize);
 				if (reason == 0) {
 					if (callback != null) {
-						callback.onStatus(info.getId(), title, bytesDL, fileSize);
+						callback.onStatus(info, title, bytesDL, fileSize);
 						if (bytesDL == fileSize) {
 							context.getContentResolver().unregisterContentObserver(info.getObserver());
+							File file = new File(info.getTemporaryFilePath());
+							if(file.renameTo(new File(info.getOriginFilePath()))){
+								LogUtil.i(TAG, "重命名成功： " + info.getOriginFilePath());
+							}
 							if(downloadList.contains(info)){
 								LogUtil.i(TAG, "下载完成移除Info");
 								downloadList.remove(info);
 							}
-							callback.onSuccess(info.getFilepath());
+							callback.onSuccess(info);
 						}
 					}
 				} else {
@@ -241,10 +268,7 @@ public class DownloadUtil {
 				LogUtil.w(TAG, "没有移除id: " + info.getId());
 			}
 		}
-		String filepath = context.getExternalFilesDir(floder) + "/" + getFileName(info.getLink());
-		if(!underAppFloder){
-			filepath = Environment.getExternalStoragePublicDirectory(floder) + "/" + getFileName(info.getLink());
-		}
+		String filepath = info.getTemporaryFilePath();
 		if (FileOperation.deleteFile(new File(filepath))) {
 			LogUtil.i(TAG, "成功删除: " + filepath);
 		} else {
@@ -350,8 +374,8 @@ public class DownloadUtil {
 		/**
 		 * 正在下载信息
 		 * 
-		 * @param downloadId
-		 * 			     下载的id
+		 * @param info
+		 * 			     下载的info
 		 * @param title
 		 *            下载的标题
 		 * @param currentBytes
@@ -359,14 +383,14 @@ public class DownloadUtil {
 		 * @param totalBytes
 		 *            总字节
 		 */
-		void onStatus(long downloadId, String title, int currentBytes, int totalBytes);
+		void onStatus(DownloadInfo info, String title, int currentBytes, int totalBytes);
 
 		/**
 		 * 下载完成
-		 * @param filepath
-		 *            文件路径
+		 * @param info
+		 *            下载信息
 		 */
-		void onSuccess(String filepath);
+		void onSuccess(DownloadInfo info);
 
 		/**
 		 * 下载失败
