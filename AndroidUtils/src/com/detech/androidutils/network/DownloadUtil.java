@@ -172,9 +172,18 @@ public class DownloadUtil {
 	 */
 	private String setFileName2Temporary(String fileName, String suffix){
 		if(MyFunc.isNullOrEmpty(fileName)) return null;
-		String fileFormat = fileName.substring(fileName.lastIndexOf("."));//文件格式
-		String name = fileName.substring(0, fileName.lastIndexOf("."));//文件名
-		return name + suffix + fileFormat;
+		try{
+			String fileFormat = fileName.substring(fileName.lastIndexOf("."));//文件格式
+			String name = fileName.substring(0, fileName.lastIndexOf("."));//文件名
+			return name + suffix + fileFormat;
+		}catch(NullPointerException ne){
+			ne.printStackTrace();
+		}catch (IndexOutOfBoundsException ie) {
+			ie.printStackTrace();
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	/**
