@@ -161,9 +161,10 @@ public class MyUsbPort extends MyPort {
 	private UsbSerialInterface.UsbReadCallback usbReadCallback = new UsbSerialInterface.UsbReadCallback() {
 		@Override
 		public void onReceivedData(byte[] buffer) {
-//			String data = MyFunc.bytesToHexString(receiveData);
-//			LogUtil.i(TAG, data);
-			bufferQueue.add(buffer);
+			if(bufferList.size()> MAX_QUEUE_NUM){//最多缓存
+				bufferList.clear();
+			}
+			bufferList.add(buffer);
 		}
 	};
 	

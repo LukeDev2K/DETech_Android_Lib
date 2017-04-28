@@ -1,7 +1,13 @@
 package com.detect.androidutils.custom;
 
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.List;
+
+import android.annotation.SuppressLint;
+
 public class MyFunc {
-	//------------------------------------------------------- // �ж�������ż����λ���㣬���һλ��?1��Ϊ������Ϊ0��ż��
+	//------------------------------------------------------- //
     static public int isOdd(int num)
 	{
 		return num & 0x1;
@@ -17,7 +23,8 @@ public class MyFunc {
     	return (byte)Integer.parseInt(inHex,16);
     }
     //-------------------------------------------------------
-    static public String Byte2Hex(Byte inByte) 
+    @SuppressLint("DefaultLocale")
+	static public String Byte2Hex(Byte inByte) 
     {
     	return String.format("%02x", inByte).toUpperCase();
     }
@@ -33,6 +40,7 @@ public class MyFunc {
 		}
 		return strBuilder.toString(); 
 	}
+	
   //-------------------------------------------------------
     static public String ByteArrToHex(byte[] inBytArr,int offset,int byteCount) 
 	{
@@ -81,14 +89,14 @@ public class MyFunc {
 	}
     
     public static byte[] byteMerger(byte[] byte_1, byte[] byte_2){  
-		byte[] b = byteAdjust(byte_1, 0);
-        byte[] byte_3 = new byte[40];  
-        System.arraycopy(b, 0, byte_3, 0, b.length);  
-        System.arraycopy(byte_2, 0, byte_3, b.length, byte_2.length);  
-        return byte_3;  
+    	byte[] byte_3 = new byte[byte_1.length+byte_2.length];  
+        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);  
+        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);  
+        return byte_3; 
     }
     
-    public static final String bytesToHexString(byte[] bArray) {
+    @SuppressLint("DefaultLocale")
+	public static final String bytesToHexString(byte[] bArray) {
 		StringBuffer sb = new StringBuffer(bArray.length);
 		String sTemp;
 		for (int i = 0; i < bArray.length; i++) {
@@ -101,9 +109,112 @@ public class MyFunc {
 		return sb.toString();
 	}
     
+    public static final String bytesToHexString(List<Byte> byteList){
+    	if(byteList == null || byteList.size() == 0) return "";
+    	byte[] bArr = new byte[byteList.size()];
+    	for (int i = 0; i < bArr.length; i++) {
+			bArr[i] = byteList.get(i);
+		}
+    	return bytesToHexString(bArr);
+    }
+    
     public static float getMills(String timeFormat){
     	String[] arr = timeFormat.split("-");
     	float timer = Float.parseFloat(arr[arr.length-1]);
     	return timer;
     }
+    
+    public static byte[] subBytes(byte[] src, int begin, int count) {
+        byte[] bs = new byte[count];
+        for (int i=begin; i<begin+count; i++) bs[i-begin] = src[i];
+        return bs;
+    }
+    
+    public static String getFileName(String path){
+    	if(isNullOrEmpty(path)) return null;
+    	File file = new File(path);
+    	return file.getName();
+    }
+    
+    public static boolean isNullOrEmpty(String str){
+    	if(str == null || str.equals("")){
+    		return true;
+    	}
+    	return false;
+    }
+    
+    public static byte[] list2ByteArr(List<Byte> byteList){
+    	if(byteList == null) return null;
+    	byte[] bArr = new byte[byteList.size()];
+    	for (int i = 0; i < bArr.length; i++) {
+			bArr[i] = byteList.get(i);
+		}
+    	return bArr;
+    }
+    
+    /**
+     * 有符号byte转无符号
+     * @param b
+     * @return
+     */
+    public static int toInt(int b) {  
+        return b >= 0 ? (int)b : (int)(b + 256);  
+    } 
+    
+    public static int parseInt(String str){
+    	int value = 0;
+    	if(isNullOrEmpty(str)) return value;
+    	try {
+    		value = Integer.parseInt(str);
+    	} catch(NumberFormatException nfe){
+    		nfe.printStackTrace();
+    	} catch (Exception e) {
+    		e.printStackTrace();
+		}
+    	return value;
+    }
+    
+    public static float parseFloat(String str){
+    	float value = 0;
+    	if(isNullOrEmpty(str)) return value;
+    	try {
+    		value = Float.parseFloat(str);
+    	} catch(NumberFormatException nfe){
+    		nfe.printStackTrace();
+    	} catch (Exception e) {
+    		e.printStackTrace();
+		}
+    	return value;
+    }
+    
+	public static String[] getFiledNames(Class<?> cls) {
+		Field[] fields = cls.getFields();
+		String[] fieldNames = new String[fields.length];
+		for (int i = 0; i < fields.length; i++) {
+			fieldNames[i] = fields[i].getName();
+		}
+		return fieldNames;
+	}
+	
+	public static Object getStaticProperty(Class<?> cls, String fieldName){
+	    Field field;
+	    Object property = null;
+		try {
+			field = cls.getField(fieldName);
+			property = field.get(cls);
+		} catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
+			e.printStackTrace();
+		}
+	    return property;
+	}
+	
+	public static void setStaticProperty(Class<?> cls, String fieldName, Object value){
+		try {
+			Field field = cls.getDeclaredField(fieldName);
+			field.setAccessible(true);
+			field.set(fieldName, value);
+		} catch (NoSuchFieldException | IllegalAccessException | IllegalArgumentException e) {
+			e.printStackTrace();
+		}
+	}
 }

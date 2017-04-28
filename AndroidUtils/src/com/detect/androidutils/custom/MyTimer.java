@@ -26,14 +26,18 @@ public class MyTimer {
 	}
 	
 	public void stop(){
-		start = false;
-		if(timer!=null){
-			timer.cancel();
-		}
+		start = false; 
 	}
 	
 	public void start(){
-		start = true;
+		start = true; 
+	}
+	
+	public void cancel(){
+		start = false; 
+		if(timer != null){
+			timer.cancel();
+		}
 	}
 	
 	public interface ScheduleCallback{

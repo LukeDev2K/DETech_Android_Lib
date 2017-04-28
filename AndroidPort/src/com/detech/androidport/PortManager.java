@@ -55,6 +55,12 @@ public class PortManager {
 		}
 	}
 	
+	public void setReadDelay(int delay){
+		if(targetPort != null){
+			targetPort.setReadDelay(delay);
+		}
+	}
+	
 	public int open(String com, int baudrate){
 		if(targetPort!=null){
 			return targetPort.open(com, baudrate);

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 
 import com.detect.androidutils.custom.LogUtil;
+import com.detect.androidutils.custom.MyFunc;
 
 import android.content.Context;
 import android_serialport_api.SerialHelper;
@@ -67,7 +68,7 @@ public class MySerialPort extends MyPort implements MyPort.ICallback{
 
 	private int openComPort(SerialHelper comPort) {
 		try {
-			comPort.open(myCom.getPort(), myCom.getBaudRate());
+			comPort.open(myCom.getPort(), myCom.getBaudRate(), readDelayTime);
 			return SUCCESS;
 		} catch (SecurityException e) {
 			LogUtil.e(TAG, comPort.getPort() + "SecurityException!" + e.getMessage());
@@ -92,9 +93,12 @@ public class MySerialPort extends MyPort implements MyPort.ICallback{
 		}
 
 		@Override
-		protected void onDataReceived(final byte[] buffer, final int size) {
-			bufferQueue.add(buffer);
-//			Log.i(TAG, "RECEIVE BYTES: " + MyFunc.bytesToHexString(buffer));
+		protected void onDataReceived(byte[] buffer, int size) {
+			buffer = MyFunc.subBytes(buffer, 0, size);
+			if(bufferList.size()> MAX_QUEUE_NUM){//最多缓存
+				bufferList.clear();
+			}
+			bufferList.add(buffer);
 			if(callback != null){
 				callback.receive(buffer);
 			}

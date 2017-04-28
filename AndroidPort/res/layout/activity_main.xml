@@ -33,4 +33,22 @@
          android:layout_centerHorizontal="true"
          android:text="Receive" />
 
+     <Button
+         android:id="@+id/shutdown_btn"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_below="@+id/send_btn"
+         android:layout_marginTop="24dp"
+         android:layout_toRightOf="@+id/reboot_btn"
+         android:text="Shutdown" />
+
+     <Button
+         android:id="@+id/reboot_btn"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignBaseline="@+id/shutdown_btn"
+         android:layout_alignBottom="@+id/shutdown_btn"
+         android:layout_alignLeft="@+id/open_btn"
+         android:text="Reboot" />
+
 </RelativeLayout>

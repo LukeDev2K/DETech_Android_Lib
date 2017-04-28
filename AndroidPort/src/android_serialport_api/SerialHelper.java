@@ -5,13 +5,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.List;
 
+import com.detect.androidutils.custom.LogUtil;
 import com.detect.androidutils.custom.MyFunc;
 
 
 public abstract class SerialHelper{
+	
+	private static final String TAG = "SerialHelper";
 	
 	private SerialPort mSerialPort;
 	private OutputStream mOutputStream;
@@ -23,11 +24,14 @@ public abstract class SerialHelper{
 	private boolean _isOpen=false;
 	private byte[] _bLoopData=new byte[]{0x30};
 	private int iDelay=500;
+	private int rDelay = 15;//读取延时
 	 
 	//----------------------------------------------------
-	public void open(String port, int baudRate) throws SecurityException, IOException,InvalidParameterException{
+	public void open(String port, int baudRate, int readDelay) throws SecurityException, IOException,InvalidParameterException{
 		sPort = port;
 		iBaudRate = baudRate;
+		rDelay = readDelay;
+		LogUtil.i(TAG, "readDelayTime: " + rDelay);
 		mSerialPort =  new SerialPort(new File(sPort), iBaudRate, 0);
 		mOutputStream = mSerialPort.getOutputStream();
 		mInputStream = mSerialPort.getInputStream();
@@ -54,12 +58,13 @@ public abstract class SerialHelper{
 	}
 	//----------------------------------------------------
 	public void send(byte[] bOutArray){
-		try
-		{
+		try{
+			if(mOutputStream == null) return;
 			mOutputStream.write(bOutArray);
 //			Log.i("SerialHelper",MyFunc.ByteArrToHex(bOutArray));
-		} catch (IOException e)
-		{
+		} catch (IOException e){
+			e.printStackTrace();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -92,7 +97,6 @@ public abstract class SerialHelper{
 	
 	//----------------------------------------------------
 	private class ReadThread extends Thread {
-		List<byte[]> byteList = new ArrayList<byte[]>();
 		
 		@Override
 		public void run() {
@@ -103,23 +107,11 @@ public abstract class SerialHelper{
 					if (mInputStream == null) return;
 					byte[] buffer=new byte[20];
 					int size = mInputStream.read(buffer);
-//					LogUtil.i("", "size: " + size + "  buffer: " + MyFunc.bytesToHexString(buffer));
 					
 					onDataReceived(buffer, size);
-					if (size > 0){
-//						byteList.add(buffer);
-//						if(size>3){
-//							byte[] newBuffer = byteList.get(0);
-//							if(byteList.size()>1){
-//								newBuffer =MyFunc.byteMerger(byteList.get(0), byteList.get(1));
-//							}
-//							onDataReceived(newBuffer, size);
-//							byteList.clear();
-//						}
-					}
 					try
 					{
-						Thread.sleep(15);// 50ms
+						Thread.sleep(rDelay);//  
 					} catch (InterruptedException e)
 					{
 						e.printStackTrace();

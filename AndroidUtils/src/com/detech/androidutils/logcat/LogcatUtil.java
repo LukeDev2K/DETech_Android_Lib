@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import com.detect.androidutils.custom.LogUtil;
+import com.detect.androidutils.custom.MyFunc;
 
 import android.content.Context;
 import android.os.Environment;
@@ -63,6 +64,13 @@ public class LogcatUtil {
 		}
 	}
 	
+	public boolean setLogcatFloder(String floderPath){
+		if(MyFunc.isNullOrEmpty(floderPath)) return false;
+		PATH_LOGCAT = floderPath;
+		File file = new File(floderPath);
+		return file.exists();
+	}
+	
 	/**
 	 * 设置文件的命名格式
 	 * @param timeParrten
@@ -89,15 +97,23 @@ public class LogcatUtil {
 	}
  
 	public void start() {
-		if (mLogDumper == null)
-			mLogDumper = new LogDumper(String.valueOf(mPId), PATH_LOGCAT);
-		mLogDumper.start();
+		try {
+			if (mLogDumper == null)
+				mLogDumper = new LogDumper(String.valueOf(mPId), PATH_LOGCAT);
+			mLogDumper.start();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
-	public void stop() {
-		if (mLogDumper != null) {
-			mLogDumper.stopLogs();
-			mLogDumper = null;
+	public void stop() { 
+		try {
+			if (mLogDumper != null) {
+				mLogDumper.stopLogs();
+				mLogDumper = null;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -136,7 +152,7 @@ public class LogcatUtil {
 			// cmds = "logcat *:e *:w | grep \"(" + mPID + ")\"";
 			// cmds = "logcat | grep \"(" + mPID + ")\"";//打印�?有日志信�?
 			// cmds = "logcat -s way";//打印标签过滤信息
-			cmds = "logcat *:e *:i | grep \"(" + mPID + ")\"";
+			cmds = "logcat *:e *:i *:w *:v *:d | grep \"(" + mPID + ")\"";
 
 		}
 
