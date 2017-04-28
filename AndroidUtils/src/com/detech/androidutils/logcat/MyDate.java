@@ -1,6 +1,7 @@
 package com.detech.androidutils.logcat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import android.annotation.SuppressLint;
 
@@ -20,6 +21,7 @@ public class MyDate {
 	
     public static String getFileName() {  
         SimpleDateFormat format = new SimpleDateFormat(fileNameParrten);  
+        format.setTimeZone(TimeZone.getTimeZone("GMT+08"));
         String date = format.format(new Date(System.currentTimeMillis()));  
         return date;//  
     }  

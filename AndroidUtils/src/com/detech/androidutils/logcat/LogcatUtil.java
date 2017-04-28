@@ -21,6 +21,7 @@ public class LogcatUtil {
 	private static LogcatUtil INSTANCE = null;
 	private static String PATH_LOGCAT;
 	private static File PATH_LOGCAT_FILE; // 文件地址
+	private static String FileName;
 
 	private LogDumper mLogDumper = null;
 	private int mPId;
@@ -83,6 +84,10 @@ public class LogcatUtil {
 		}
 	}
 	
+	public void setFileName(String filename){
+		FileName = filename;
+	}
+	
 	/**
 	 * 设置内容的写入格式
 	 * 
@@ -132,7 +137,11 @@ public class LogcatUtil {
 
 		public LogDumper(String pid, String dir) {
 			mPID = pid;
-			PATH_LOGCAT_FILE = new File(dir, "Log-" + MyDate.getFileName() + ".log");
+			if(MyFunc.isNullOrEmpty(FileName)){
+				PATH_LOGCAT_FILE = new File(dir, "Log-" + MyDate.getFileName() + ".log");
+			}else{
+				PATH_LOGCAT_FILE = new File(dir, "Log-" + FileName + ".log");
+			}
 			LogUtil.i(TAG, "PATH_LOGCAT_FILE: " + PATH_LOGCAT_FILE);
 			try {
 				out = new FileOutputStream(PATH_LOGCAT_FILE);

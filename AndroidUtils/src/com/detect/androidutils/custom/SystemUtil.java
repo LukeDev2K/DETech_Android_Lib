@@ -177,7 +177,6 @@ public class SystemUtil {
             packageInfo = this.context.getPackageManager().getPackageInfo(packageName, 0);
         } catch (NameNotFoundException var7) {
             packageInfo = null;
-            var7.printStackTrace();
         } finally {
             if(packageInfo == null) {
                 return false;
