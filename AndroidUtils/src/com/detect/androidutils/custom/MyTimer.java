@@ -1,28 +1,31 @@
 package com.detect.androidutils.custom;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MyTimer {
 	
-	private Timer timer;
+    private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 	private int t;
 	private boolean start;
 	
-	public MyTimer(final int delayTime, final ScheduleCallback callback){
-		timer = new Timer();
-		timer.schedule(new TimerTask() {
-			
-			@Override
-			public void run() {
-				if(start){
-					t++;
-					if(callback != null){
-						callback.onTimeChange(t);
+	public MyTimer(int delayTime, final ScheduleCallback callback) {
+		try {
+			executorService.scheduleAtFixedRate(new Runnable() {
+				@Override
+				public void run() {
+					if (start) {
+						t++;
+						if (callback != null) {
+							callback.onTimeChange(t);
+						}
 					}
 				}
-			}
-		},0, delayTime);
+			}, 0, delayTime, TimeUnit.MILLISECONDS);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void stop(){
@@ -35,8 +38,9 @@ public class MyTimer {
 	
 	public void cancel(){
 		start = false; 
-		if(timer != null){
-			timer.cancel();
+		if(executorService != null){
+			executorService.shutdown();
+			executorService = null;
 		}
 	}
 	
