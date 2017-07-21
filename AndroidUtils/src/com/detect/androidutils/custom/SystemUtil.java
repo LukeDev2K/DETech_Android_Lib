@@ -1,5 +1,8 @@
 package com.detect.androidutils.custom;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -44,6 +47,15 @@ public class SystemUtil {
 		return tManager.getDeviceId();
 	}
 	
+	public String getUuid(){
+		String id = getSdcardId(0);
+		if(MyFunc.isNullOrEmpty(id)){
+			LogUtil.w(TAG, "获取EMMC id 出错， 尝试获取Android id");
+			id = getAndroidID();
+		}
+		return id;
+	}
+	
 	/**
 	 * 如果Android Pad没有IMEI,用此方法获取设备ANDROID_ID
 	 * @return
@@ -51,6 +63,21 @@ public class SystemUtil {
 	public String getAndroidID() {
 		if(context == null) return "";
 		return Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
+	}
+	
+	public String getSdcardId(int index) {
+		String path = "/sys/block/mmcblk" + index + "/device/cid";
+		File file = new File(path);
+		if (file.exists()) {
+			try {
+				BufferedReader CID = new BufferedReader(new FileReader(path));
+				String sd_cid = CID.readLine();
+				return sd_cid;
+			} catch (Exception e1) {
+				System.out.println("getSdcardId()-" + e1.getMessage());
+			}
+		}
+		return null;
 	}
 	
 	/**

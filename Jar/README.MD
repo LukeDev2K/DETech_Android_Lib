@@ -6,3 +6,5 @@
 1.定时器使用新方法 ScheduledExecutorService 
 ----------------------DetechLibrary_v1.00.05.jar---------------------------
 1.Log时打印线程id
+----------------------DetechLibrary_v1.00.06.jar---------------------------
+1.添加获取emmc方法

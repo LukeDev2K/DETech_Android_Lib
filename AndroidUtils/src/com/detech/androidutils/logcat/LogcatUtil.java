@@ -24,6 +24,7 @@ public class LogcatUtil {
 	private static String FileName;
 
 	private LogDumper mLogDumper = null;
+	private boolean logAll = false;
 	private int mPId;
 
 	private Context context;
@@ -121,6 +122,10 @@ public class LogcatUtil {
 			e.printStackTrace();
 		}
 	}
+
+	public void setLogAll(boolean all){
+		logAll = all;
+	}
 	
 	private void checkFile(){
 		//TODO 检查文件夹文件, 如果大约多少容量就删除
@@ -161,7 +166,11 @@ public class LogcatUtil {
 			// cmds = "logcat *:e *:w | grep \"(" + mPID + ")\"";
 			// cmds = "logcat | grep \"(" + mPID + ")\"";//打印�?有日志信�?
 			// cmds = "logcat -s way";//打印标签过滤信息
-			cmds = "logcat *:e *:i *:w *:v *:d | grep \"(" + mPID + ")\"";
+			if(!logAll){
+				cmds = "logcat *:e *:i *:w *:v *:d | grep \"(" + mPID + ")\"";
+			}else {
+				cmds = "logcat *:e *:i *:w *:v *:d";
+			}
 
 		}
 
