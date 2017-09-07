@@ -71,18 +71,24 @@ public class PortManager {
 	public void sendBytes(byte[] cmdBytes){
 		if(targetPort!=null){
 			targetPort.sendBytes(cmdBytes);
+		}else {
+			LogUtil.e(TAG, "NULL PORT0!!!!");
 		}
 	}
 	
 	public void sendHex(String hex){
 		if(targetPort!=null){
 			targetPort.sendHex(hex);
+		}else {
+			LogUtil.e(TAG, "NULL PORT1!!!!");
 		}
 	}
 	
 	public byte[] receive(){
 		if(targetPort != null){
 			return targetPort.receive();
+		}else {
+			LogUtil.e(TAG, "NULL PORT2!!!!");
 		}
 		return new byte[]{};
 	}
@@ -90,6 +96,8 @@ public class PortManager {
 	public void close(){
 		if(targetPort!=null){
 			targetPort.close();
+		}else {
+			LogUtil.e(TAG, "NULL PORT3!!!!");
 		}
 	}
 	

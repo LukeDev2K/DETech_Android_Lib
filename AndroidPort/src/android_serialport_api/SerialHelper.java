@@ -59,7 +59,10 @@ public abstract class SerialHelper{
 	//----------------------------------------------------
 	public void send(byte[] bOutArray){
 		try{
-			if(mOutputStream == null) return;
+			if(mOutputStream == null) {
+				LogUtil.e(TAG, "NULL OUT PUT STREAM!!!!");	
+				return;
+			}
 			mOutputStream.write(bOutArray);
 //			Log.i("SerialHelper",MyFunc.ByteArrToHex(bOutArray));
 		} catch (IOException e){

@@ -31,6 +31,8 @@ public class MySerialPort extends MyPort implements MyPort.ICallback{
 	public void sendBytes(byte[] cmdBytes){
 		if(myCom != null){
 			myCom.send(cmdBytes);
+		}else {
+			LogUtil.e(TAG, "NULL COM PROT!!!");
 		}
 	}
 	
@@ -95,7 +97,7 @@ public class MySerialPort extends MyPort implements MyPort.ICallback{
 		@Override
 		protected void onDataReceived(byte[] buffer, int size) {
 			buffer = MyFunc.subBytes(buffer, 0, size);
-			if(bufferList.size()> MAX_QUEUE_NUM){//最多缓存
+			if(bufferList.size()> MAX_QUEUE_NUM){//鏈�澶氱紦瀛�
 				bufferList.clear();
 			}
 			bufferList.add(buffer);

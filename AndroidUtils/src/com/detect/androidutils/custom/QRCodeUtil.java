@@ -19,6 +19,8 @@ public class QRCodeUtil {
 	
 	private static final String TAG = "QRCodeUtil";
 	
+	private static Object errorCorrectionLevel = ErrorCorrectionLevel.L;
+	
 	/**
 	 * 生产二维码
 	 * @param content 内容
@@ -35,7 +37,7 @@ public class QRCodeUtil {
 			Map<EncodeHintType, Object> hints = new HashMap<EncodeHintType, Object>();
 			hints.put(EncodeHintType.CHARACTER_SET, "utf-8");
 			// 容错级别
-			hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
+			hints.put(EncodeHintType.ERROR_CORRECTION, errorCorrectionLevel);
 			// 设置空白边距的宽度
 			// hints.put(EncodeHintType.MARGIN, 2); //default is 4
 
@@ -115,4 +117,12 @@ public class QRCodeUtil {
  
         return bitmap;
     }
+
+    /**
+     * 调用ErrorCorrectionLevel
+     * @param errorCorrectionLevel
+     */
+	public static void setErrorCorrectionLevel(Object errorCorrectionLevel) {
+		QRCodeUtil.errorCorrectionLevel = errorCorrectionLevel;
+	}
 }
