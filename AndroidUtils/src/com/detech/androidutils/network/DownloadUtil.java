@@ -103,6 +103,7 @@ public class DownloadUtil {
 				return;
 			}
 			LogUtil.e(TAG, "不成功删除: " + temporaryFilePath);
+			removeDownloadInfo(info);
 		}else{
 			doDownloadAction(request, info, link, callback);
 		}

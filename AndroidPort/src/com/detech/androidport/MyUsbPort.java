@@ -22,13 +22,13 @@ import android.util.Log;
 import android.widget.Toast;
 
 /**
- * usb 串口管理器
+ * usb 串口
  * @author Luke O
  *
  */
 public class MyUsbPort extends MyPort {
 	
-	private static final String TAG = "UsbPortManager";
+	private static final String TAG = "MyUsbPort";
 	private static int BAUD_RATE = 115200;
 	
 	private UsbManager myUsbManager;
@@ -37,9 +37,14 @@ public class MyUsbPort extends MyPort {
 	private UsbSerialDevice usbPort;
 	private Context context;
 	private ConnectionThread connThread;
+	private IUsbOpenCallback usbOpenCallback;
 	private boolean serialPortConnected;
 	
 	public MyUsbPort(){ 
+	} 
+	
+	public void setUsbOpenCallback(IUsbOpenCallback usbOpenCallback) {
+		this.usbOpenCallback = usbOpenCallback;
 	}
 	
 	@Override
@@ -113,7 +118,7 @@ public class MyUsbPort extends MyPort {
                 usbDevice = entry.getValue();
                 int deviceVID = usbDevice.getVendorId();
                 int devicePID = usbDevice.getProductId();
-                Log.i(TAG, "vid: "+deviceVID + "pid: "+devicePID);
+                Log.i(TAG, "vid: "+deviceVID + "   pid: "+devicePID);
                 if (deviceVID != 0x1d6b && (devicePID != 0x0001 && devicePID != 0x0002 && devicePID != 0x0003)) {
                     // There is a device connected to our Android device. Try to open it as a Serial Port.
                     requestUserPermission();
@@ -141,6 +146,14 @@ public class MyUsbPort extends MyPort {
     }
 	
 	private void requestUserPermission() {
+		if(context == null){
+			LogUtil.e(TAG, "NULL CONTEXT!!");
+			return;
+		}
+		if(usbDevice == null){
+			LogUtil.e(TAG, "NULL USBDEVICES!");
+			return;
+		}
 		PendingIntent mPendingIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
 		myUsbManager.requestPermission(usbDevice, mPendingIntent);
 	}
@@ -161,7 +174,7 @@ public class MyUsbPort extends MyPort {
 	private UsbSerialInterface.UsbReadCallback usbReadCallback = new UsbSerialInterface.UsbReadCallback() {
 		@Override
 		public void onReceivedData(byte[] buffer) {
-			if(bufferList.size()> MAX_QUEUE_NUM){//最多缓存
+			if(bufferList.size()> MAX_QUEUE_NUM){// 
 				bufferList.clear();
 			}
 			bufferList.add(buffer);
@@ -250,10 +263,16 @@ public class MyUsbPort extends MyPort {
                     usbConnect = myUsbManager.openDevice(usbDevice);
                    	connThread = new ConnectionThread();
                    	connThread.start();
+                   	if(usbOpenCallback != null){
+                   		usbOpenCallback.onSuccess();
+                   	}
                 } else // User not accepted our USB connection. Send an Intent to the Main Activity
                 {
                     Intent intent = new Intent(ACTION_USB_PERMISSION_NOT_GRANTED);
                     c.sendBroadcast(intent);
+                	if(usbOpenCallback != null){
+                   		usbOpenCallback.onFailed("FAILED REASON--->ACTION_USB_PERMISSION_NOT_GRANTED");
+                   	}
                 }
             } else if (i.getAction().equals(ACTION_USB_ATTACHED)) {
                 if (!serialPortConnected)
@@ -269,4 +288,9 @@ public class MyUsbPort extends MyPort {
             }
         }
     }; 
+    
+    public interface IUsbOpenCallback{
+    	void onSuccess();
+    	void onFailed(String reason);
+    }
 }
