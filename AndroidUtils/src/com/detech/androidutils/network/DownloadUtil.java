@@ -107,7 +107,6 @@ public class DownloadUtil {
 		}else{
 			LogUtil.e(TAG, "没有这个文件" + temporaryFilePath);
 			doDownloadAction(request, info, link, callback);
-			removeDownloadInfo(info);
 		}
 	}
 	
