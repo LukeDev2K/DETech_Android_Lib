@@ -26,7 +26,7 @@ public class DownloadUtil {
 	private static final String TAG = "DownloadController";
 	private static final String DOWNLOAD_SUFFIX = "_downloading";//下载文件的后缀
 
-	public static final int FAIL_NETWORK_INAVAILABLE		= 1001;
+	public static final int FAIL_NETWORK_INAVAILABLE	= 1001;
 	public static final int FAIL_COMPONENT_INAVAILABLE 	= 1002;
 	public static final int FAIL_WRONG_ADDRESS 			= 1003;
 	public static final int FAIL_ALREADY_DOWNLOADED	 	= 1004;
@@ -187,66 +187,6 @@ public class DownloadUtil {
 		}
 		return null;
 	}
-
-	/**
-	 * 检查下载状态
-	 * @param info
-	 * @param callback
-	 */
-	private void queryDownloadStatus(DownloadInfo info, IDownloadStatusCallback callback) {
-		if(info == null) return;
-		if(downloadManager == null) return;
-		DownloadManager.Query query = new DownloadManager.Query();
-		query.setFilterById(info.getId());
-		Cursor cursor = null;
-		try {
-			cursor = downloadManager.query(query);
-			if (cursor != null && cursor.moveToFirst()) {
-				int titleIdx = cursor.getColumnIndex(DownloadManager.COLUMN_TITLE);
-				int reasonIdx = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
-				int fileSizeIdx = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES);//
-				int bytesDLIdx = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR);// 目前的下载大小
-
-				String title = cursor.getString(titleIdx); 
-				int fileSize = cursor.getInt(fileSizeIdx);
-				int bytesDL = cursor.getInt(bytesDLIdx);
-				int reason = cursor.getInt(reasonIdx);// 这个值分析下载和暂停的原因，
-
-				StringBuilder builder = new StringBuilder();
-				builder.append(title).append("\n");
-				builder.append("Downloaded ").append(bytesDL).append("/").append(fileSize);
-				if (reason == 0) {
-					if (callback != null) {
-						callback.onStatus(info, title, bytesDL, fileSize);
-						if (bytesDL == fileSize) {
-							context.getContentResolver().unregisterContentObserver(info.getObserver());
-							File file = new File(info.getTemporaryFilePath());
-							if(file.renameTo(new File(info.getOriginFilePath()))){
-								LogUtil.i(TAG, "重命名成功： " + info.getOriginFilePath());
-							}
-							if(downloadList.contains(info)){
-								LogUtil.i(TAG, "下载完成移除Info");
-								downloadList.remove(info);
-							}
-							callback.onSuccess(info);
-						}
-					}
-				} else {
-					if (callback != null) {
-						callback.onFail(reason);
-						removeDownloadInfo(info);
-					}
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (cursor != null) {
-				cursor.close();
-				cursor = null;
-			}
-		}
-	}
 	
 	/**
 	 * 移除下载信息
@@ -306,6 +246,8 @@ public class DownloadUtil {
 
 		private DownloadInfo info;
 		private IDownloadStatusCallback downloadCompletedCallback;
+		private int lastBytes = -1;
+		private int sameBytesTime;//相同下载字节次数
 
 		public DownloadChangeObserver(Handler handler, DownloadInfo info, IDownloadStatusCallback callback) {
 			super(handler);
@@ -319,6 +261,80 @@ public class DownloadUtil {
 		@Override
 		public void onChange(boolean selfChange) {
 			queryDownloadStatus(info, downloadCompletedCallback);
+		}
+
+		/**
+		 * 检查下载状态
+		 * @param info
+		 * @param callback
+		 */
+		private void queryDownloadStatus(DownloadInfo info, IDownloadStatusCallback callback) {
+			if(info == null) return;
+			if(downloadManager == null) return;
+			DownloadManager.Query query = new DownloadManager.Query();
+			query.setFilterById(info.getId());
+			Cursor cursor = null;
+			try {
+				cursor = downloadManager.query(query);
+				if (cursor != null && cursor.moveToFirst()) {
+					int titleIdx = cursor.getColumnIndex(DownloadManager.COLUMN_TITLE);
+					int reasonIdx = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
+					int fileSizeIdx = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES);//
+					int bytesDLIdx = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR);// 目前的下载大小
+
+					String title = cursor.getString(titleIdx); 
+					int fileSize = cursor.getInt(fileSizeIdx);
+					int bytesDL = cursor.getInt(bytesDLIdx);
+					int reason = cursor.getInt(reasonIdx);// 这个值分析下载和暂停的原因， 
+					
+					if(bytesDL != lastBytes){
+						lastBytes = bytesDL;
+						sameBytesTime = 0;
+					}else {
+						++sameBytesTime;
+						int maxTime = 2;
+						if(bytesDL <= 0) maxTime = 100;
+						if(sameBytesTime >= maxTime && fileSize == -1){
+							LogUtil.i(TAG, "下载异常");
+							removeDownloadInfo(info);
+							if(callback != null) callback.onFail(reason);
+						}
+					}
+					
+					StringBuilder builder = new StringBuilder();
+					builder.append(title).append("\n");
+					builder.append("Downloaded ").append(bytesDL).append("/").append(fileSize);
+					if (reason == 0) {
+						if (callback != null) {
+							callback.onStatus(info, title, bytesDL, fileSize);
+							if (bytesDL == fileSize) {
+								context.getContentResolver().unregisterContentObserver(info.getObserver());
+								File file = new File(info.getTemporaryFilePath());
+								if(file.renameTo(new File(info.getOriginFilePath()))){
+									LogUtil.i(TAG, "重命名成功： " + info.getOriginFilePath());
+								}
+								if(downloadList.contains(info)){
+									LogUtil.i(TAG, "下载完成移除Info");
+									downloadList.remove(info);
+								}
+								callback.onSuccess(info);
+							}
+						}
+					} else {
+						if (callback != null) {
+							callback.onFail(reason);
+							removeDownloadInfo(info);
+						}
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if (cursor != null) {
+					cursor.close();
+					cursor = null;
+				}
+			}
 		}
 	}
 
